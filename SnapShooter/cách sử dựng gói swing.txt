@@ -1,0 +1,134 @@
+🎮 1️⃣ Các thành phần cốt lõi của Swing cho game 2D
+🪟 1. JFrame
+
+Dùng để tạo cửa sổ chính cho game.
+
+JFrame frame = new JFrame("My 2D Game");
+🎨 2. JPanel
+
+Dùng để vẽ game (nhân vật, bản đồ, đạn, v.v).
+
+Bạn sẽ override phương thức:
+
+protected void paintComponent(Graphics g)
+
+Ví dụ:
+
+class GamePanel extends JPanel {
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        g.fillRect(100, 100, 50, 50); // vẽ hình vuông
+    }
+}
+🖌 3. Graphics / Graphics2D
+
+Dùng để vẽ:
+
+Hàm	Công dụng
+drawImage()	vẽ hình ảnh
+fillRect()	vẽ hình chữ nhật
+drawString()	vẽ chữ
+drawOval()	vẽ hình tròn
+
+Nâng cao hơn:
+
+Graphics2D g2 = (Graphics2D) g;
+⏱ 4. Timer
+
+Dùng để tạo game loop đơn giản (cập nhật liên tục).
+
+Timer timer = new Timer(16, e -> {
+    update();
+    repaint();
+});
+timer.start();
+
+16ms ≈ 60 FPS.
+
+⌨ 5. Xử lý bàn phím – KeyListener
+addKeyListener(new KeyAdapter() {
+    public void keyPressed(KeyEvent e) {
+        if(e.getKeyCode() == KeyEvent.VK_LEFT) {
+            x -= 5;
+        }
+    }
+});
+
+Phải nhớ:
+
+setFocusable(true);
+🖱 6. Chuột – MouseListener (nếu cần)
+addMouseListener(new MouseAdapter() {
+    public void mouseClicked(MouseEvent e) {
+        System.out.println("Click!");
+    }
+});
+🧠 2️⃣ Cấu trúc game 2D cơ bản bằng Swing
+
+Game đơn giản thường có:
+
+JFrame
+   |
+   └── GamePanel (JPanel)
+            |
+            ├── update()   // cập nhật logic
+            ├── paintComponent() // vẽ
+            └── Timer      // vòng lặp game
+🗂 3️⃣ Những import thường dùng
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+⚡ 4️⃣ Những thứ KHÔNG nên dùng cho game
+
+Swing không tối ưu cho game lớn.
+
+Nếu sau này bạn muốn nâng cao:
+
+Dùng Canvas + BufferStrategy
+
+Hoặc dùng thư viện như:
+
+LibGDX
+
+JavaFX
+
+LWJGL
+
+🚀 Ví dụ game 2D đơn giản hoàn chỉnh
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+
+public class SimpleGame extends JPanel {
+
+    int x = 100;
+
+    public SimpleGame() {
+        Timer timer = new Timer(16, e -> {
+            repaint();
+        });
+        timer.start();
+
+        setFocusable(true);
+        addKeyListener(new KeyAdapter() {
+            public void keyPressed(KeyEvent e) {
+                if(e.getKeyCode() == KeyEvent.VK_RIGHT) x += 5;
+                if(e.getKeyCode() == KeyEvent.VK_LEFT) x -= 5;
+            }
+        });
+    }
+
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        g.fillRect(x, 200, 50, 50);
+    }
+
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("Game 2D");
+        frame.add(new SimpleGame());
+        frame.setSize(600, 400);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setVisible(true);
+    }
+}
