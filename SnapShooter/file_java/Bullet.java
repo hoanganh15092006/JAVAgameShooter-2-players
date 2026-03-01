@@ -1,6 +1,10 @@
 package SnapShooter.file_java;
 
+import java.awt.geom.Path2D;
 import java.awt.*;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Area;
+import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 
 class Bullet {
@@ -66,23 +70,29 @@ class Bullet {
                 dy = 0;
             }
             case 4 -> { // Gojo skill3: một quả cầu tím lớn
-                this.width = 24 * 8;
-                this.height = 24 * 8;
+                this.width = 24 * 16;
+                this.height = 24 * 16;
                 this.damage = 80;
+                this.speed = 15; // tốc độ chậm hơn nhiều để cân bằng chiêu mạnh
                 // đường đạn vẫn bình thường (hướng lên/xuống)
             }
-            case 5 -> { // Sukuna skill2: hình chữ nhật nằm ngang, bay thẳng xuống
-                this.width = 90;            // bằng chiều dài chiêu thường
-                this.height = 8;       // rộng 1/2 chiêu thường
-                this.damage = 30;            
-                speed = 40;           // gấp đôi tốc độ
+            case 5 -> { // Sukuna skill2: lưỡi liềm điều chỉnh kích thước
+                this.width = 180;           // giảm xuống còn gấp đôi chiêu thường
+                this.height = 16;           // chiều cao tăng gấp đôi
+                this.damage = 30;
+                this.speed = 40; // vẫn gấp đôi chiêu thường
+                if (fromPlayer1) dy = -speed;
+                else dy = speed;
             }
             case 6 -> { // Sukuna skill3: ngọn lửa truyền thẳng
                 // kích thước lớn hơn, tầm chiêu khoảng 2 lần đạn thường
-                this.width = 50;
-                this.height = 120;
+                this.width = 50*3;
+                this.height = 120*3;
                 this.damage = 80;          // theo yêu cầu
-                speed = 70;               // gấp 10 lần như trước
+                // tốc độ bây giờ là gấp 4 lần chiêu thường
+                this.speed = 10;
+                if (fromPlayer1) dy = -speed;
+                else dy = speed;
             }
         }
     }
@@ -232,72 +242,166 @@ class Bullet {
             // Hiệu ứng FULLSCREEN SÉT GIẬT
             drawFullscreenLightning(g2d);
         }
-        // Sukuna skill2 (type5) – đường chéo với lửa
+        // Sukuna skill2 (type5) – chiêu rộng, hình lưỡi liềm xoay 90° (mặt cong xuống dưới)
         else if (bulletType == 5) {
             Graphics2D g2 = (Graphics2D) g;
 
-            // Vẽ glow lửa
+            // Glow lửa quanh crescent (vẫn dùng vòng oval)
             for (int i = 3; i >= 1; i--) {
                 g2.setColor(new Color(255, 100, 0, 50 - i * 12));
-                g2.fillRect(x - i, y - i, width + i * 2, height + i * 2);
+                g2.fillOval(x - i, y - i, width + i * 2, height + i * 2);
             }
-            
-            // Tạo hiệu ứng gradient
+
+            // chuẩn bị xoay toàn bộ đồ họa thêm 180° so với trạng thái trước (bây giờ hướng cong lên trên)
+            AffineTransform orig = g2.getTransform();
+            double cx = x + width / 2.0;
+            double cy = y + height / 2.0;
+            // thay vì 90°, xoay -90° (tương đương 270° cw) để đạt tổng 180° so với hình ban đầu
+            g2.rotate(-Math.PI / 2, cx, cy);
+
+            // Gradient cho mặt trăng (xoay cùng)
             GradientPaint silver = new GradientPaint(
                     x, y, new Color(255, 150, 50),
                     x, y + height * 3, new Color(255, 200, 100)
             );
-
             g2.setPaint(silver);
-            g2.setStroke(new BasicStroke(Math.max(2, height), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            g2.drawLine(x, y - 30, 180 + x, y + height*2);
-            
-            // Vẽ lửa xung quanh đường
-            drawFlameTrail(g2, x, y, 180 + x, y + height*2);
-            
-            // Viền sáng
+
+            // Tạo crescent bằng hai ellipse lớn và cắt bớt
+            double outerH = height * 3.0;
+            Ellipse2D outer = new Ellipse2D.Double(x, y - (outerH - height) / 2, width, outerH);
+            Ellipse2D inner = new Ellipse2D.Double(x + width / 4.0, y - (outerH - height) / 2, width, outerH);
+            Area crescent = new Area(outer);
+            crescent.subtract(new Area(inner));
+            g2.fill(crescent);
+
+            // Viền ngoài của crescent
             g2.setColor(new Color(255, 200, 150));
             g2.setStroke(new BasicStroke(2));
-            g2.drawLine(x, y - 30, 180 + x, y + height*2);
+            g2.draw(crescent);
+
+            // đưa transform về bình thường để vẽ lửa theo đường thẳng từ dưới lên
+            g2.setTransform(orig);
+
+            // Lửa chạy từ đáy lên đỉnh (đường thẳng sau khi xoay 180°)
+            int startX = x + width / 2;
+            int startY = y + height - height / 8;
+            int endX = startX;
+            int endY = y + height / 8;
+            drawFlameTrail(g2, startX, startY, endX, endY);
         }
         // Sukuna skill3 (type6) – ngọn lửa lớn với cháy
         else if (bulletType == 6) {
             // Vẽ massive glow lửa
-            for (int i = 4; i >= 1; i--) {
-                int[] glowX = {x + width/2, x - i * 4, x + width + i * 4};
-                int[] glowY = {y - i * 2, y + height + i * 3, y + height + i * 3};
-                g2d.setColor(new Color(255, 100, 0, 60 - i * 12));
-                g2d.fillPolygon(glowX, glowY, 3);
-            }
+            // for (int i = 4; i >= 1; i--) {
+            //     int[] glowX = {x + width/2, x - i * 4, x + width + i * 4};
+            //     int[] glowY = {y - i * 2, y + height + i * 3, y + height + i * 3};
+            //     g2d.setColor(new Color(255, 100, 0, 60 - i * 12));
+            //     g2d.fillPolygon(glowX, glowY, 3);
+            // }
             
-            // Vẽ hình ngọn lửa chính
-            int[] flameX = {x + width/2, x, x + width};
-            int[] flameY = {y, y + height, y + height};
+            // // Vẽ hình ngọn lửa chính
+            // int[] flameX = {x + width/2, x, x + width};
+            // int[] flameY = {y, y + height, y + height};
             
-            GradientPaint gp = new GradientPaint(x, y, new Color(255, 180, 0),
-                    x, y + height, new Color(255, 100, 0));
-            g2d.setPaint(gp);
-            g2d.fillPolygon(flameX, flameY, 3);
+            // GradientPaint gp = new GradientPaint(x, y, new Color(255, 180, 0),
+            //         x, y + height, new Color(255, 100, 0));
+            // g2d.setPaint(gp);
+            // g2d.fillPolygon(flameX, flameY, 3);
             
-            // Vẽ lửa ngoài
-            drawFlameOuter(g2d, flameX, flameY);
+            // // Vẽ lửa ngoài
+            // drawFlameOuter(g2d, flameX, flameY);
             
-            // Vẽ hạt tro và lửa rơi
-            drawAshParticles(g2d, x + width/2, y + height);
+            // // Vẽ hạt tro và lửa rơi
+            // drawAshParticles(g2d, x + width/2, y + height);
             
-            // Viền sáng chớp
-            float pulse = 2 + (float)Math.sin(animTick * 0.15) * 1.5f;
-            g2d.setColor(new Color(255, 220, 100));
-            g2d.setStroke(new BasicStroke(pulse + 2));
-            g2d.drawPolygon(flameX, flameY, 3);
+            // // Viền sáng chớp
+            // float pulse = 2 + (float)Math.sin(animTick * 0.15) * 1.5f;
+            // g2d.setColor(new Color(255, 220, 100));
+            // g2d.setStroke(new BasicStroke(pulse + 2));
+            // g2d.drawPolygon(flameX, flameY, 3);
             
-            // Outline màu cam
-            g2d.setColor(new Color(255, 150, 0));
-            g2d.setStroke(new BasicStroke(2));
-            g2d.drawPolygon(flameX, flameY, 3);
+            // // Outline màu cam
+            // g2d.setColor(new Color(255, 150, 0));
+            // g2d.setStroke(new BasicStroke(2));
+            // g2d.drawPolygon(flameX, flameY, 3);
             
-            // Hiệu ứng FULLSCREEN LỬA
-            drawFullscreenFlames(g2d);
+            // // Hiệu ứng FULLSCREEN LỬA
+            // drawFullscreenFlames(g2d);
+            // ===== NGỌN LỬA ĐẦU TRÒN MỀM =====
+int centerX = x + width / 2;
+double wobble = Math.sin(animTick * 0.25) * 15;
+
+// LỚP NGOÀI (cam đỏ lớn)
+Path2D.Double outerFlame = new Path2D.Double();
+outerFlame.moveTo(centerX, y - 30); // đỉnh tròn
+
+outerFlame.curveTo(
+        x - 40, y + height * 0.3,
+        x - 20, y + height * 0.7,
+        x, y + height
+);
+
+outerFlame.lineTo(x + width, y + height);
+
+outerFlame.curveTo(
+        x + width + 20, y + height * 0.7,
+        x + width + 40, y + height * 0.3,
+        centerX, y - 30
+);
+
+outerFlame.closePath();
+
+g2d.setColor(new Color(255, 100, 0, 130));
+g2d.fill(outerFlame);
+
+// ===== LỚP GIỮA =====
+Path2D.Double midFlame = new Path2D.Double();
+midFlame.moveTo(centerX + wobble, y);
+
+midFlame.curveTo(
+        x, y + height * 0.3,
+        x + 20, y + height * 0.7,
+        x + width / 2.0, y + height
+);
+
+midFlame.curveTo(
+        x + width - 20, y + height * 0.7,
+        x + width, y + height * 0.3,
+        centerX + wobble, y
+);
+
+midFlame.closePath();
+
+GradientPaint flameGradient = new GradientPaint(
+        centerX, y,
+        new Color(255, 220, 50),
+        centerX, y + height,
+        new Color(255, 80, 0)
+);
+
+g2d.setPaint(flameGradient);
+g2d.fill(midFlame);
+
+// ===== LÕI TRẮNG =====
+Path2D.Double core = new Path2D.Double();
+core.moveTo(centerX, y + 20);
+
+core.curveTo(
+        centerX - width / 6.0, y + height * 0.5,
+        centerX - width / 8.0, y + height,
+        centerX, y + height
+);
+
+core.curveTo(
+        centerX + width / 8.0, y + height,
+        centerX + width / 6.0, y + height * 0.5,
+        centerX, y + 20
+);
+
+core.closePath();
+
+g2d.setColor(new Color(255, 255, 220, 200));
+g2d.fill(core);
         }
     }
     

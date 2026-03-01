@@ -455,8 +455,10 @@ class GamePanel extends JPanel implements ActionListener, KeyListener {
             // Sukuna skill2 (2)
             case KeyEvent.VK_2 -> {
                 if (player2.skill2Unlocked) {
-                    // Chiêu 2: viên dài xiên bắn thẳng xuống sân Gojo
+                    // Chiêu 2: viên lưỡi liềm bắn xuống; khởi tạo ở giữa Sukuna
                     Bullet b = new Bullet(player2.x + 15, player2.y + 40, false, 5);
+                    // căn giữa theo chiều rộng mới của đạn
+                    b.x = player2.x + player2.width / 2 - b.width / 2;
                     // constructor đã đặt dy = speed và dx = speed/4
                     bullets.add(b);
                     player2.skill2Unlocked = false;
