@@ -65,7 +65,8 @@ class Bullet {
                 this.width = 24;
                 this.height = 24;
                 this.damage = 20;
-                this.bounceCount = 6; // bật lại 3 lần
+                this.speed = 25;
+                this.bounceCount = 20; // bật lại 3 lần
                 // hướng ban đầu sẽ được caller thiết lập (dx lệch trái/phải)
                 dy = 0;
             }
@@ -73,7 +74,7 @@ class Bullet {
                 this.width = 24 * 16;
                 this.height = 24 * 16;
                 this.damage = 80;
-                this.speed = 15; // tốc độ chậm hơn nhiều để cân bằng chiêu mạnh
+                this.speed = 5; // tốc độ chậm hơn nhiều để cân bằng chiêu mạnh
                 // đường đạn vẫn bình thường (hướng lên/xuống)
             }
             case 5 -> { // Sukuna skill2: lưỡi liềm điều chỉnh kích thước

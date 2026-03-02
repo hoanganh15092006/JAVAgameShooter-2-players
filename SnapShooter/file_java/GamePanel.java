@@ -437,7 +437,7 @@ class GamePanel extends JPanel implements ActionListener, KeyListener {
                 }
             }
             // Gojo skill3 (P)
-            case KeyEvent.VK_P -> {
+            case KeyEvent.VK_O -> {
                 if (player1.skill3Unlocked) {
                     bullets.add(new Bullet(player1.x + 15, player1.y - 12, true, 4));
                     player1.skill3Unlocked = false;

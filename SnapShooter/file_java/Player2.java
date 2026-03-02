@@ -300,8 +300,8 @@ public class Player2 {
         int iconY = y - 60;
 
         if (characterType == 1) {
-            // chữ U, I, P
-            char[] keys = {'U','I','P'};
+            // chữ U, I, O
+            char[] keys = {'U','I','O'};
             boolean[] ready = {normalReady, skill2Unlocked, skill3Unlocked};
             for (int i = 0; i < 3; i++) {
                 g.setColor(ready[i] ? Color.GREEN : Color.DARK_GRAY);
