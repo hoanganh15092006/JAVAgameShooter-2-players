@@ -446,34 +446,39 @@ class GamePanel extends JPanel implements ActionListener, KeyListener {
             }
 
             // Sukuna normal shot (1) với cooldown
-            case KeyEvent.VK_1 -> {
-                if (sukunaNormalCooldown == 0) {
-                    bullets.add(new Bullet(player2.x + 15, player2.y + 40, false, 2));
-                    sukunaNormalCooldown = 62;
-                }
-            }
-            // Sukuna skill2 (2)
-            case KeyEvent.VK_2 -> {
-                if (player2.skill2Unlocked) {
-                    // Chiêu 2: viên lưỡi liềm bắn xuống; khởi tạo ở giữa Sukuna
-                    Bullet b = new Bullet(player2.x + 15, player2.y + 40, false, 5);
-                    // căn giữa theo chiều rộng mới của đạn
-                    b.x = player2.x + player2.width / 2 - b.width / 2;
-                    // constructor đã đặt dy = speed và dx = speed/4
-                    bullets.add(b);
-                    player2.skill2Unlocked = false;
-                    player2.normalHitCount = 0;
-                }
-            }
-            // Sukuna skill3 (3)
-            case KeyEvent.VK_3 -> {
-                if (player2.skill3Unlocked) {
-                    Bullet b = new Bullet(player2.x + 15, player2.y + 40, false, 6);
-                    bullets.add(b);
-                    player2.skill3Unlocked = false;
-                    player2.skill2HitCount = 0;
-                }
-            }
+            // Sukuna normal shot (1) với cooldown
+case KeyEvent.VK_1, KeyEvent.VK_NUMPAD1 -> {
+    if (sukunaNormalCooldown == 0) {
+        bullets.add(new Bullet(player2.x + 15, player2.y + 40, false, 2));
+        sukunaNormalCooldown = 62;
+    }
+}
+
+// Sukuna skill2 (2)
+case KeyEvent.VK_2, KeyEvent.VK_NUMPAD2 -> {
+    if (player2.skill2Unlocked) {
+        Bullet b = new Bullet(player2.x + 15, player2.y + 40, false, 5);
+
+        // căn giữa theo chiều rộng mới của đạn
+        b.x = player2.x + player2.width / 2 - b.width / 2;
+
+        bullets.add(b);
+
+        player2.skill2Unlocked = false;
+        player2.normalHitCount = 0;
+    }
+}
+
+// Sukuna skill3 (3)
+case KeyEvent.VK_3, KeyEvent.VK_NUMPAD3 -> {
+    if (player2.skill3Unlocked) {
+        Bullet b = new Bullet(player2.x + 15, player2.y + 40, false, 6);
+        bullets.add(b);
+
+        player2.skill3Unlocked = false;
+        player2.skill2HitCount = 0;
+    }
+}
         }
     }
 
